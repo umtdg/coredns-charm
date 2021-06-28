@@ -1,0 +1,21 @@
+# Copyright 2021 umtdg
+# See LICENSE file for licensing details.
+name: coredns-k8s
+description: |
+  TEMPLATE-TODO: fill out the charm's description
+summary: |
+  TEMPLATE-TODO: fill out the charm's summary
+
+containers:
+  coredns:
+    resource: coredns-image
+
+resources:
+  coredns-image:
+    description: OCI image for CoreDNS (umtdg/coredns)
+    type: oci-image
+  actions-file:
+    description: File containing line separated list of commands that will run
+                 before CoreDNS. List of available commands are actions
+    type: file
+    filename: actions_file.txt

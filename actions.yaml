@@ -1,0 +1,179 @@
+# Copyright 2021 umtdg
+# See LICENSE file for licensing details.
+
+add-property:
+  description: Add new property to an existing CoreDNS plugin
+  params:
+    name:
+      description: Name of the property to be added
+      type: string
+      default: ""
+    args:
+      description: Space separated arguments passed to property
+      type: string
+      default: ""
+    plugin:
+      description: Name of the plugin that property belongs
+      type: string
+      default: ""
+    zone:
+      description: Name of the zone that plugin belongs
+      type: string
+      default: ""
+    replace:
+      description: Whether to replace existing property or not
+      type: boolean
+      default: true
+  required: [name, plugin, zone]
+
+remove-property:
+  description: Remove a property from an existing CoreDNS plugin
+  params:
+    name:
+      description: Name of the property to be removed
+      type: string
+      default: ""
+    plugin:
+      description: Name of the plugin that property belongs
+      type: string
+      default: ""
+    zone:
+      description: Name of the zone that plugin belongs
+      type: string
+      default: ""
+  required: [name, plugin, zone]
+
+add-plugin:
+  description: Add new plugin to an existing CoreDNS zone. If plugin name is file, corresponding file will be created
+  params:
+    name:
+      description: Name of the plugin to be added
+      type: string
+      default: ""
+    args:
+      description: Space separated arguments passed to plugin
+      type: string
+      default: ""
+    zone:
+      description: Name of the zone that plugin belongs
+      type: string
+      default: ""
+    replace:
+      description: Whether to replace existing plugin or not
+      type: boolean
+      default: true
+  required: [name, zone]
+
+remove-plugin:
+  description: Remove a plugin from an existing CoreDNS zone
+  params:
+    name:
+      description: Name of the plugin to be removed
+      type: string
+      default: ""
+    zone:
+      description: Name of the zone that plugin belongs
+      type: string
+      default: ""
+  required: [name, zone]
+
+add-zone:
+  description: Add new zone to Corefile. File plugin will automatically be added
+  params:
+    name:
+      description: Name of the zone to be added
+      type: string
+      default: ""
+    port:
+      description: Port for the zone
+      type: integer
+      default: 53
+    replace:
+      description: Whether to replace existing zone or not
+      type: boolean
+      default: true
+  required: [name]
+
+remove-zone:
+  description: Remove zone from Corefile
+  params:
+    name:
+      description: Name of the zone to be removed
+      type: string
+      default: ""
+    keep:
+      description: Whether to the keep zone file or not
+      type: boolean
+      default: false
+  required: [name]
+
+#add-record:
+#  description: Add new DNS record to an existing DNS zone file
+#  params:
+#    zonefile:
+#      description: Zone file that record belongs
+#      type: string
+#      default: ""
+#    hostname:
+#      description: First part of the DNS record to be added ('dns.example.com' in 'dns.example.com IN A 192.168.1.1')
+#      type: string
+#      default: ""
+#    type:
+#      description: Type of the record
+#      type: string
+#      default: ""
+#    args:
+#      description: Space separated arguments that record requires
+#      type: string
+#      default: ""
+#    name:
+#      description: Name of the record to be added. This has no effect on record. Defaults to 'hostname'
+#      type: string
+#      default: ""
+#  required: [zone, hostname, type, args]
+#
+#remove-record:
+#  description: Remove a record from an existing DNS zone file
+#  params:
+#    zonefile:
+#      description: Zone file that record belongs
+#      type: string
+#      default: ""
+#    name:
+#      description: Name of the DNS record to be removed
+#      type: string
+#      default: ""
+#  required: [zone, name]
+
+print-zone:
+  description: Output a single zone
+  params:
+    zone:
+      description: Zone to output
+      type: string
+      default: ""
+    current:
+      description: Whether to get zone from current Corefile or new Corefile
+      type: boolean
+      default: true
+  required: [zone]
+
+print-corefile:
+  description: Output current Corefile or new Corefile after some actions
+  params:
+    current:
+      description: Whether to output current Corefile or not
+      type: boolean
+      default: true
+
+print-zonefile:
+  description: Output a zone file
+  params:
+    zonefile:
+      description: Name of the zone file to be output
+      type: string
+      default: ""
+  required: [zonefile]
+
+update:
+  description: Update Corefile of running CoreDNS intance
