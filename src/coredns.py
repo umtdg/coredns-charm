@@ -1,3 +1,5 @@
+"""Handle CoreDNS objects and print them accordingly"""
+
 __all__ = [
     "CoreDNSObject",
     "CoreDNSPluginProperty",
@@ -8,7 +10,10 @@ __all__ = [
     "PLUGIN_LOG",
     "PLUGIN_ERRORS",
     "PLUGIN_FORWARD_CLOUDFLARE",
-    "PLUGIN_FORWARD_GOOGLE"
+    "PLUGIN_FORWARD_GOOGLE",
+    "PropertyDictType",
+    "PluginDictType",
+    "ZoneDictType"
 ]
 
 from typing import (
@@ -21,9 +26,9 @@ from typing import (
 )
 
 _OT = TypeVar("_OT")
-PROPERTY_DICT_TYPE = Dict[str, Union[str, List[str]]]
-PLUGIN_DICT_TYPE = Dict[str, Union[str, List[str], Dict[str, PROPERTY_DICT_TYPE]]]
-ZONE_DICT_TYPE = Dict[str, Union[str, int, Dict[str, PLUGIN_DICT_TYPE]]]
+PropertyDictType = Dict[str, Union[str, List[str]]]
+PluginDictType = Dict[str, Union[str, List[str], Dict[str, PropertyDictType]]]
+ZoneDictType = Dict[str, Union[str, int, Dict[str, PluginDictType]]]
 
 
 class CoreDNSObject(Generic[_OT]):
@@ -59,7 +64,9 @@ class CoreDNSObject(Generic[_OT]):
         self.args: List[str] = list(args)
         self.objects: Dict[str, _OT] = objects
 
-    def __str__(self):
+    def to_caddy(self) -> str:
+        """Return object and its objects in Caddy format"""
+
         result = '\t' * self.depth + self.name_string
         for arg in self.args:
             result += f" {arg}"
@@ -67,7 +74,7 @@ class CoreDNSObject(Generic[_OT]):
         if self.objects:
             result += " {\n"
             for obj in self.objects.values():
-                result += f"{str(obj)}\n"
+                result += f"{obj.to_caddy()}\n"
             result += '\t' * self.depth + "}"
 
         return result
@@ -164,7 +171,7 @@ class CoreDNSPluginProperty(CoreDNSObject):
         super(CoreDNSPluginProperty, self).__init__(2, name, *args)
 
     @staticmethod
-    def from_dict(d: PROPERTY_DICT_TYPE) -> "CoreDNSPluginProperty":
+    def from_dict(d: PropertyDictType) -> "CoreDNSPluginProperty":
         return CoreDNSPluginProperty(
             d["name"],
             *d["args"]
@@ -191,7 +198,7 @@ class CoreDNSPlugin(CoreDNSObject[CoreDNSPluginProperty]):
         super(CoreDNSPlugin, self).__init__(1, name, *args, objects=properties)
 
     @staticmethod
-    def from_dict(d: PLUGIN_DICT_TYPE) -> "CoreDNSObject":
+    def from_dict(d: PluginDictType) -> "CoreDNSObject":
         return CoreDNSPlugin(
             d["name"],
             *d["args"],
@@ -260,7 +267,7 @@ class CoreDNSZone(CoreDNSObject[CoreDNSPlugin]):
         return result
 
     @staticmethod
-    def from_dict(d: ZONE_DICT_TYPE) -> "CoreDNSZone":
+    def from_dict(d: ZoneDictType) -> "CoreDNSZone":
         return CoreDNSZone(
             d["name"],
             port=d["port"],
@@ -310,10 +317,10 @@ class CoreDNSCorefile(CoreDNSObject[CoreDNSZone]):
         if len(self.objects) == 0:
             raise ValueError("At least one zone required")
 
-    def __str__(self):
+    def to_caddy(self) -> str:
         result = ""
         for zone in self.objects.values():
-            result += f"{str(zone)}\n\n"
+            result += f"{zone.to_caddy()}\n\n"
         return result.strip()
 
     def to_dict(self) -> Dict[str, Dict]:

@@ -32,12 +32,12 @@ class TestCoreDNS(unittest.TestCase):
     def test_base_object_init_raise(self):
         self.assertRaises(ValueError, CoreDNSObject, -1, "name", "arg1", "arg2")
 
-    def test_base_object_str(self):
+    def test_base_object_to_caddy(self):
         obj1 = CoreDNSObject(0, "obj1", "arg1", "arg2")
         obj2 = CoreDNSObject(1, "obj2")
 
-        self.assertEqual(str(obj1), "obj1 arg1 arg2")
-        self.assertEqual(str(obj2), "\tobj2")
+        self.assertEqual(obj1.to_caddy(), "obj1 arg1 arg2")
+        self.assertEqual(obj2.to_caddy(), "\tobj2")
 
     def test_base_object_eq(self):
         obj1 = CoreDNSObject(0, "obj1", "arg1", "arg2")
@@ -105,16 +105,16 @@ class TestCoreDNS(unittest.TestCase):
         )
         self.assertDictEqual(plugin2.objects, {})
 
-    def test_plugin_str(self):
+    def test_plugin_to_caddy(self):
         plugin1 = CoreDNSPlugin("plugin1", "arg1", "arg2")
         plugin2 = CoreDNSPlugin("plugin2", "arg1", "arg2", properties={
             "prop1": CoreDNSPluginProperty("prop1", "arg1"),
             "prop2": CoreDNSPluginProperty("prop2")
         })
 
-        self.assertEqual(str(plugin1), "\tplugin1 arg1 arg2")
+        self.assertEqual(plugin1.to_caddy(), "\tplugin1 arg1 arg2")
         self.assertEqual(
-            str(plugin2),
+            plugin2.to_caddy(),
             "\tplugin2 arg1 arg2 {\n\t\tprop1 arg1\n\t\tprop2\n\t}"
         )
 
@@ -291,7 +291,7 @@ class TestCoreDNS(unittest.TestCase):
             "plugin1": CoreDNSPlugin("plugin1")
         })
 
-    def test_zone_str(self):
+    def test_zone_to_caddy(self):
         zone1 = CoreDNSZone("zone1")
         zone2 = CoreDNSZone("zone2", 69)
         zone3 = CoreDNSZone("zone3", 69, {
@@ -302,10 +302,10 @@ class TestCoreDNS(unittest.TestCase):
             })
         })
 
-        self.assertEqual(str(zone1), "zone1:53")
-        self.assertEqual(str(zone2), "zone2:69")
+        self.assertEqual(zone1.to_caddy(), "zone1:53")
+        self.assertEqual(zone2.to_caddy(), "zone2:69")
         self.assertEqual(
-            str(zone3),
+            zone3.to_caddy(),
             "zone3:69 {\n"
             "\tplugin1 arg1\n"
             "\tplugin2 arg2 {\n"
@@ -524,7 +524,7 @@ class TestCoreDNS(unittest.TestCase):
     def test_corefile_init_raise(self):
         self.assertRaises(ValueError, CoreDNSCorefile, {})
 
-    def test_corefile_str(self):
+    def test_corefile_to_caddy(self):
         corefile1 = CoreDNSCorefile({".": CoreDNSZone(".")})
         corefile2 = CoreDNSCorefile({
             ".": CoreDNSZone(".", plugins={
@@ -563,15 +563,15 @@ class TestCoreDNS(unittest.TestCase):
             })
         })
 
-        self.assertEqual(str(corefile1), ".:53")
+        self.assertEqual(corefile1.to_caddy(), ".:53")
         self.assertEqual(
-            str(corefile2),
+            corefile2.to_caddy(),
             ".:53 {\n"
             "\tplugin1 arg1\n"
             "}"
         )
         self.assertEqual(
-            str(corefile3),
+            corefile3.to_caddy(),
             ".:53 {\n"
             "\tplugin1 arg1 {\n"
             "\t\tprop1 arg1\n"
@@ -583,7 +583,7 @@ class TestCoreDNS(unittest.TestCase):
             "}"
         )
         self.assertEqual(
-            str(corefile4),
+            corefile4.to_caddy(),
             ".:53 {\n"
             "\tplugin1 arg1 {\n"
             "\t\tprop1 arg1\n"

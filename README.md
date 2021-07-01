@@ -31,7 +31,7 @@ operator behaviour without full deployment. Just `run_tests`:
 - [x] ~~Proper resulting for actions~~
 - [x] ~~Add option to keep zone file when removing a zone with file plugin~~
 - [x] ~~Add parser to read and execute commands from file~~
-- [ ] Change `__str__` to a different method
+- [x] ~~Change `__str__` to a different method~~
 - [ ] Better default Corefile with configs
 - [ ] Add/remove records to/from zone files
 - [ ] Unit tests for print actions
