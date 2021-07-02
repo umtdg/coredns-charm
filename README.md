@@ -2,11 +2,27 @@
 
 ## Description
 
-TODO: Describe your charm in a few paragraphs of Markdown
+CoreDNS server using Kubernetes clusters with sidecar pattern via Pebble
 
 ## Usage
 
-TODO: Provide high-level usage, such as required config or relations
+### Config
+
+There are currently no configs
+
+### Deployment
+
+In order to deploy, there are two resources:
+* An OCI image containing CoreDNS executable in '/' (There will be a config for this)
+* A custom script file containing commands in each line
+
+#### Script file
+
+The commands in the file are parsed line by line by charm itself and CoreDNS config is updated accordingly. Syntax of these commands is similar to actions.
+
+**TODO**: Add script to generate list of commands that belongs to script file
+
+### Actions
 
 ## Developing
 
@@ -32,6 +48,7 @@ operator behaviour without full deployment. Just `run_tests`:
 - [x] ~~Add option to keep zone file when removing a zone with file plugin~~
 - [x] ~~Add parser to read and execute commands from file~~
 - [x] ~~Change `__str__` to a different method~~
+- [ ] Add script to generate list of commands that goes into script file
 - [ ] Better default Corefile with configs
 - [ ] Add/remove records to/from zone files
 - [ ] Unit tests for print actions
