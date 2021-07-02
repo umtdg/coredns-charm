@@ -14,8 +14,8 @@ resources:
   coredns-image:
     description: OCI image for CoreDNS (umtdg/coredns)
     type: oci-image
-  actions-file:
+  script-file:
     description: File containing line separated list of commands that will run
                  before CoreDNS. List of available commands are actions
     type: file
-    filename: actions_file.txt
+    filename: coredns_script.txt

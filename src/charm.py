@@ -97,11 +97,11 @@ class CorednsK8SCharm(CharmBase):
         corefile = self.corefile
 
         try:
-            actions_file = self.model.resources.fetch("actions-file")
+            actions_file = self.model.resources.fetch("script-file")
             Parser.exec(corefile, actions_file)
         except ModelError:
             self.unit.status = MaintenanceStatus(
-                "Resource 'actions-file' not found. Using default Corefile"
+                "Resource 'script-file' not found. Using default Corefile"
             )
             corefile = CoreDNSCorefile.from_dict(self._default_corefile)
         except RequiredError as e:
