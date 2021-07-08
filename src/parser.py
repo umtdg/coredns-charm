@@ -106,7 +106,7 @@ class Parser:
         if obj is None:
             return result_type.value()
         else:
-            return str(obj)
+            return obj.to_caddy()
 
     @staticmethod
     def reset(corefile: CoreDNSCorefile, _) -> str:

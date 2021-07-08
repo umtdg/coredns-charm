@@ -97,11 +97,11 @@ class CorednsK8SCharm(CharmBase):
         corefile = self.corefile
 
         try:
-            actions_file = self.model.resources.fetch("actions-file")
+            actions_file = self.model.resources.fetch("script-file")
             Parser.exec(corefile, actions_file)
         except ModelError:
             self.unit.status = MaintenanceStatus(
-                "Resource 'actions-file' not found. Using default Corefile"
+                "Resource 'script-file' not found. Using default Corefile"
             )
             corefile = CoreDNSCorefile.from_dict(self._default_corefile)
         except RequiredError as e:
@@ -123,7 +123,7 @@ class CorednsK8SCharm(CharmBase):
         self._parse_actions_file()
 
         try:
-            container.push("/Corefile", str(self.corefile))
+            container.push("/Corefile", self.corefile.to_caddy())
         except PathError as e:
             self.unit.status = BlockedStatus(
                 f"Failed to create /Corefile: Message: {e.message}"
@@ -153,7 +153,7 @@ class CorednsK8SCharm(CharmBase):
         event.log("Outputting {} Corefile".format("current" if current else "new"))
 
         corefile = self.corefile if current else self.new_corefile
-        print(str(corefile))
+        print(corefile.to_caddy())
 
     def _on_print_zone(self, event: ActionEvent):
         zone: str = event.params["zone"]
@@ -166,14 +166,14 @@ class CorednsK8SCharm(CharmBase):
         if zone not in corefile.objects:
             event.fail(f"Could not found zone {zone}")
         else:
-            print(str(corefile.objects[zone]))
+            print(corefile.objects[zone].to_caddy())
 
     def _on_print_zonefile(self, event: ActionEvent):
         zonefile: str = event.params["zonefile"]
 
         event.log("Outputting zone file")
         if zonefile in self._stored.zonefiles:
-            print(str(CoreDNSZoneFile.from_dict(self._stored.zonefiles[zonefile])))
+            print(CoreDNSZoneFile.from_dict(self._stored.zonefiles[zonefile]).to_caddy())
         else:
             event.fail(f"Zone file {zonefile} not found")
 
@@ -253,7 +253,7 @@ class CorednsK8SCharm(CharmBase):
             # Update stored Corefile and update on disk
             self._stored.corefile = new_corefile.to_dict()
             try:
-                container.push("/Corefile", str(new_corefile))
+                container.push("/Corefile", new_corefile.to_caddy())
             except PathError as e:
                 self.unit.status = BlockedStatus(
                     "Failed to create /Corefile: Kind: {}, Message: {}".format(

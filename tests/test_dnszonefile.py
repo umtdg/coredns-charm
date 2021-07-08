@@ -25,21 +25,21 @@ class TestDNSZoneFile(unittest.TestCase):
         self.assertEqual(rec3.record_type, "CNAME")
         self.assertListEqual(rec3.args, ["host", "host2"])
 
-    def test_dns_record_str(self):
+    def test_dns_record_to_caddy(self):
         rec1 = DNSRecord("dns.example.com", "A", "192.168.1.2")
         rec2 = DNSRecord("subdomain.domain.com", "A", "10.69.0.420")
         rec3 = DNSRecord("server.domain.com", "CNAME", "host", "host2")
 
         self.assertEqual(
-            str(rec1),
+            rec1.to_caddy(),
             "dns.example.com.\tIN\tA\t192.168.1.2"
         )
         self.assertEqual(
-            str(rec2),
+            rec2.to_caddy(),
             "subdomain.domain.com.\tIN\tA\t10.69.0.420"
         )
         self.assertEqual(
-            str(rec3),
+            rec3.to_caddy(),
             "server.domain.com.\tIN\tCNAME\thost host2"
         )
 
@@ -132,14 +132,14 @@ class TestDNSZoneFile(unittest.TestCase):
         self.assertIsNone(zonefile.remove_record("rec"))
         self.assertDictEqual(zonefile.records, {})
 
-    def test_dns_zone_file_str(self):
+    def test_dns_zone_file_to_caddy(self):
         zonefile = CoreDNSZoneFile()
         zonefile.add_record_from_instance(
             DNSRecord("dns.example.io", "A", "192.168.1.2")
         )
 
         self.assertEqual(
-            str(zonefile),
+            zonefile.to_caddy(),
             "dns.example.io.\tIN\tA\t192.168.1.2"
         )
 

@@ -28,7 +28,7 @@ class DNSRecord:
         self.record_type: str = record_type
         self.args: List[str] = list(args)
 
-    def __str__(self):
+    def to_caddy(self):
         result = "{}.\tIN\t{}\t{}".format(
             self.hostname,
             self.record_type,
@@ -76,8 +76,8 @@ class CoreDNSZoneFile:
 
         self.records: Dict[str, "DNSRecord"] = {}
 
-    def __str__(self):
-        return '\n'.join([str(record) for record in self.records.values()])
+    def to_caddy(self):
+        return '\n'.join([record.to_caddy() for record in self.records.values()])
 
     def __eq__(self, other: "CoreDNSZoneFile"):
         if len(self.records) != len(other.records):
