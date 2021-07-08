@@ -20,9 +20,11 @@ In order to deploy, there are two resources:
 
 The commands in the file are parsed line by line by charm itself and CoreDNS config is updated accordingly. Syntax of these commands is similar to actions.
 
-**TODO**: Add script to generate list of commands that belongs to script file
+For a list of commands see: [Commands](command_list.md)
 
 ### Actions
+
+Actions have the same syntax with commands in [command_list.md](command_list.md)
 
 ## Developing
 
@@ -48,7 +50,6 @@ operator behaviour without full deployment. Just `run_tests`:
 - [x] ~~Add option to keep zone file when removing a zone with file plugin~~
 - [x] ~~Add parser to read and execute commands from file~~
 - [x] ~~Change `__str__` to a different method~~
-- [ ] Add script to generate list of commands that goes into script file
 - [ ] Better default Corefile with configs
 - [ ] Add/remove records to/from zone files
 - [ ] Unit tests for print actions
