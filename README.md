@@ -2,44 +2,70 @@
 
 ## Description
 
-CoreDNS server using Kubernetes clusters with sidecar pattern via Pebble
+CoreDNS server using Kubernetes clusters with sidecar pattern via Pebble.
 
 ## Usage
 
-### Config
+There are two options for Corefile configuration:
+* Use a script file (i.e. [coredns_script.txt](coredns_script.txt)),
+* Use Juju actions
+
+A default Corefile will always be generated and each option applies to that particular
+default Corefile.
+
+### Script file
+
+A script file used for Corefile generation. Each line **not** starting with `#` is
+considered as command and executed accordingly. CoreDNS service will be started after
+the execution of `script-file`.
+
+Syntax of the commands are the same with actions except names uses underscore as 
+a replacement of dash. For example, if an action's name is `add-property`, then it 
+is used as `add_property` in `script-file`.
+
+Changes made by each command will be applied to a default Corefile. To generate
+a Corefile from scratch, use `reset` in `script-file`.
+
+There is no `update` command in `script-file` since generation of Corefile will be
+after the execution of `script-file`.
+
+## Config
 
 There are currently no configs
 
-### Deployment
+## Deployment
 
 In order to deploy, there are two resources:
-* An OCI image containing CoreDNS executable in '/' (There will be a config for this)
+* An OCI image containing CoreDNS executable in '/' (TODO: Add config for CoreDNS
+  executable path and Corefile path)
 * A custom script file containing commands in each line
 
-#### Script file
+## Actions
 
-The commands in the file are parsed line by line by charm itself and CoreDNS config is updated accordingly. Syntax of these commands is similar to actions.
+To see the actions defined:
 
-For a list of commands see: [Commands](command_list.md)
+    # juju actions coredns-k8s
 
-### Actions
+To show detailed information for an action:
 
-Actions have the same syntax with commands in [command_list.md](command_list.md)
+    # juju show-action coredns-k8s/<unit_number> <action_name>
+
+Alternatively, you can view [actions.yaml](actions.yaml).
 
 ## Developing
 
 Create and activate a virtualenv with the development requirements:
 
-    virtualenv -p python3 venv
-    source venv/bin/activate
-    pip install -r requirements-dev.txt
+    $ virtualenv -p python3 venv
+    $ source venv/bin/activate
+    $ pip install -r requirements-dev.txt
 
 ## Testing
 
 The Python operator framework includes a very nice harness for testing
 operator behaviour without full deployment. Just `run_tests`:
 
-    ./run_tests
+    $ ./run_tests
 
 ## TODO
 - [x] ~~Add action/actions to view a single zone, Corefile, or a zone file~~
