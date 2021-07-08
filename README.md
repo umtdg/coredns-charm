@@ -15,8 +15,8 @@ default Corefile.
 
 ### Script file
 
-A script file used for Corefile generation. Each line **not** starting with `#` is
-considered as command and executed accordingly. CoreDNS service will be started after
+A script file used for Corefile generation. File is executed line by line. Lines starting
+with `#` are and empty lines are ignored. CoreDNS service will be started after
 the execution of `script-file`.
 
 Syntax of the commands are the same with actions except names uses underscore as 
