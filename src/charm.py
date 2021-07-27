@@ -93,7 +93,7 @@ class CorednsK8SCharm(CharmBase):
     def new_corefile(self):
         return CoreDNSCorefile.from_dict(self._stored.new_corefile)
 
-    def _parse_actions_file(self):
+    def parse_actions_file(self):
         corefile = self.corefile
 
         try:
@@ -120,7 +120,7 @@ class CorednsK8SCharm(CharmBase):
         # Get a reference the container attribute on the PebbleReadyEvent
         container = event.workload
 
-        self._parse_actions_file()
+        self.parse_actions_file()
 
         try:
             container.push("/Corefile", self.corefile.to_caddy())

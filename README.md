@@ -76,14 +76,14 @@ operator behaviour without full deployment. Just `run_tests`:
 - [x] ~~Add option to keep zone file when removing a zone with file plugin~~
 - [x] ~~Add parser to read and execute commands from file~~
 - [x] ~~Change `__str__` to a different method~~
-- [ ] Better default Corefile with configs
-- [ ] Add/remove records to/from zone files
+- [x] Add replace option for 'add' actions
 - [ ] Unit tests for print actions
 - [ ] Unit tests for add/remove property actions
 - [ ] Unit tests for add/remove plugin actions
 - [ ] Unit tests for add/remove zone actions
-- [ ] Unit tests for add/remove record actions
+- [ ] Better default Corefile with configs
 - [ ] Support for adding 'file' plugin (Create corresponding file)
 - [ ] Support for removing 'file' plugin (Remove corresponding file)
-- [ ] Add replace option for 'add' actions
+- [ ] Add/remove records to/from zone files
+- [ ] Unit tests for add/remove record actions
 - [ ] Add config to specify a directory to store CoreDNS files (Corefile and DNS zone files)
