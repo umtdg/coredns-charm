@@ -1,0 +1,8 @@
+add_plugin name=kubernetes args="cluster.local in-addr.arpa ip6.arpa" zone=.
+add_property name=fallthrough args="in-addr.arpa ip6.arpa" zone=. plugin=kubernetes
+add_property name=pods args=insecure zone=. plugin=kubernetes
+
+# This comment line won't be executed
+add_zone name=example.io port=69
+add_plugin name=errors zone=example.io
+add_plugin name=log zone=example.io
