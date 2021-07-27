@@ -33,7 +33,14 @@ class RequiredError(Exception):
 
 class Parser:
     @staticmethod
-    def _raise_required(given, required):
+    def return_result_if_none(obj: Optional[CoreDNSObject], result_type: ResultType) -> str:
+        if obj is None:
+            return result_type.value
+        else:
+            return obj.to_caddy()
+
+    @staticmethod
+    def raise_required(given, required):
         missing = []
         for arg in required:
             if arg not in given:
@@ -43,16 +50,16 @@ class Parser:
             raise RequiredError(f"Missing required arguments: {missing}")
 
     @staticmethod
-    def _validate_plugin_owners(corefile: CoreDNSCorefile, zone: str):
+    def validate_plugin_owners(corefile: CoreDNSCorefile, zone: str):
         if zone not in corefile.objects:
             raise ValidationError(f"Could not found given zone {zone}")
 
     @staticmethod
-    def _validate_property_owners(corefile: CoreDNSCorefile, plugin: str, zone: str):
+    def validate_property_owners(corefile: CoreDNSCorefile, plugin: str, zone: str):
         try:
-            Parser._validate_plugin_owners(corefile, zone)
+            Parser.validate_plugin_owners(corefile, zone)
         except ValidationError as e:
-            raise ValidationError(e.message)
+            raise e
 
         if plugin not in corefile.objects[zone].objects:
             raise ValidationError(f"Could not found given plugin {plugin}")
@@ -62,29 +69,38 @@ class Parser:
         return s.lower() in ["true", "yes"]
 
     @staticmethod
-    def default_params(params: Dict, defaults: Dict, convert: bool = True):
-        for default in defaults:
-            if default not in params:
-                params[default] = defaults[default]
-
-        if convert:
-            Parser.convert_params(params)
-
-    @staticmethod
-    def convert_params(params: Dict):
-        conversion_map = {
-            "args": str.split,
-            "port": int,
-            "replace": Parser.str2bool
-        }
+    def convert_params(
+            params: Dict,
+            conversion_map: Optional[Dict] = None
+    ):
+        if conversion_map is None:
+            conversion_map = {
+                "args": str.split,
+                "port": int,
+                "replace": Parser.str2bool
+            }
 
         for arg in conversion_map:
             if arg in params:
                 params[arg] = conversion_map[arg](params[arg])
 
     @staticmethod
+    def default_params(
+            params: Dict,
+            defaults: Dict,
+            convert: bool = True,
+            conversion_map: Optional[Dict] = None
+    ):
+        for default in defaults:
+            if default not in params:
+                params[default] = defaults[default]
+
+        if convert:
+            Parser.convert_params(params, conversion_map)
+
+    @staticmethod
     def parse_args(cmd: str) -> Dict:
-        lexer = shlex.shlex(cmd, posix=True)
+        lexer = shlex.shlex(cmd, posix=True, punctuation_chars=True)
         lexer.wordchars += '='
 
         params = dict(word.split('=', maxsplit=1) for word in lexer)
@@ -93,8 +109,7 @@ class Parser:
             params,
             {
                 "args": "",
-                "replace": "true",
-                "port": "53",
+                "replace": "true"
             },
             convert=True
         )
@@ -102,20 +117,13 @@ class Parser:
         return params
 
     @staticmethod
-    def _return_result(obj: Optional[CoreDNSObject], result_type: ResultType) -> str:
-        if obj is None:
-            return result_type.value()
-        else:
-            return obj.to_caddy()
-
-    @staticmethod
-    def reset(corefile: CoreDNSCorefile, _) -> str:
+    def reset(corefile: CoreDNSCorefile, _=None) -> str:
         corefile.objects = {}
         return ""
 
     @staticmethod
     def add_property(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name", "plugin", "zone"])
+        Parser.raise_required(params, ["name", "plugin", "zone"])
 
         name: str = params["name"]
         zone: str = params["zone"]
@@ -123,61 +131,68 @@ class Parser:
         args: List[str] = params["args"]
         replace: bool = params["replace"]
 
-        Parser._validate_property_owners(corefile, plugin, zone)
+        Parser.validate_property_owners(corefile, plugin, zone)
 
         added = corefile.objects[zone].objects[plugin].add_property(
             name,
             *args,
             replace=replace
         )
-        return Parser._return_result(added, ResultType.ADD_NO_REPLACE)
+        return Parser.return_result_if_none(added, ResultType.ADD_NO_REPLACE)
 
     @staticmethod
     def remove_property(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name", "plugin", "zone"])
+        Parser.raise_required(params, ["name", "plugin", "zone"])
 
         name: str = params["name"]
         zone: str = params["zone"]
         plugin: str = params["plugin"]
 
-        Parser._validate_property_owners(corefile, plugin, zone)
+        Parser.validate_property_owners(corefile, plugin, zone)
 
         removed = corefile.objects[zone].objects[plugin].remove_object(name)
-        return Parser._return_result(removed, ResultType.REMOVE_NOT_FOUND)
+        return Parser.return_result_if_none(removed, ResultType.REMOVE_NOT_FOUND)
 
     @staticmethod
     def add_plugin(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name", "zone"])
+        Parser.raise_required(params, ["name", "zone"])
 
         name: str = params["name"]
         zone: str = params["zone"]
         args: List[str] = params["args"]
         replace: bool = params["replace"]
 
-        Parser._validate_plugin_owners(corefile, zone)
+        Parser.validate_plugin_owners(corefile, zone)
 
         added = corefile.objects[zone].add_plugin(
             name,
             *args,
             replace=replace
         )
-        return Parser._return_result(added, ResultType.ADD_NO_REPLACE)
+        return Parser.return_result_if_none(added, ResultType.ADD_NO_REPLACE)
 
     @staticmethod
     def remove_plugin(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name", "zone"])
+        Parser.raise_required(params, ["name", "zone"])
 
         name: str = params["name"]
         zone: str = params["zone"]
 
-        Parser._validate_plugin_owners(corefile, zone)
+        Parser.validate_plugin_owners(corefile, zone)
 
         removed = corefile.objects[zone].remove_object(name)
-        return Parser._return_result(removed, ResultType.REMOVE_NOT_FOUND)
+        return Parser.return_result_if_none(removed, ResultType.REMOVE_NOT_FOUND)
 
     @staticmethod
     def add_zone(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name"])
+        Parser.raise_required(params, ["name"])
+
+        Parser.default_params(
+            params,
+            {"port": "53"},
+            convert=True,
+            conversion_map={"port": int}
+        )
 
         name: str = params["name"]
         port: int = params["port"]
@@ -185,14 +200,14 @@ class Parser:
 
         added = corefile.add_zone(name, port, replace=replace)
 
-        return Parser._return_result(added, ResultType.ADD_NO_REPLACE)
+        return Parser.return_result_if_none(added, ResultType.ADD_NO_REPLACE)
 
     @staticmethod
     def remove_zone(corefile: CoreDNSCorefile, params: Dict) -> str:
-        Parser._raise_required(params, ["name"])
+        Parser.raise_required(params, ["name"])
 
         zone = corefile.remove_object(params["name"])
-        return Parser._return_result(zone, ResultType.REMOVE_NOT_FOUND)
+        return Parser.return_result_if_none(zone, ResultType.REMOVE_NOT_FOUND)
 
     @staticmethod
     def exec(corefile: CoreDNSCorefile, filename: str):
