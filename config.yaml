@@ -8,3 +8,7 @@
 # Learn more about config at: https://juju.is/docs/sdk/config
 
 options:
+  dummy:
+    description: dummy
+    type: string
+    default: ""
