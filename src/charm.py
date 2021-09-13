@@ -94,23 +94,21 @@ class CorednsK8SCharm(CharmBase):
         return CoreDNSCorefile.from_dict(self._stored.new_corefile)
 
     def parse_actions_file(self):
+        logger.debug("Parsing actions file")
+
         corefile = self.corefile
 
         try:
             actions_file = self.model.resources.fetch("script-file")
             Parser.exec(corefile, actions_file)
         except ModelError:
-            self.unit.status = MaintenanceStatus(
-                "Resource 'script-file' not found. Using default Corefile"
-            )
+            logger.debug("Resource 'script-file' not found. Using default Corefile")
+
             corefile = CoreDNSCorefile.from_dict(self._default_corefile)
         except RequiredError as e:
-            self.unit.status = MaintenanceStatus(
-                "Errors occurred while reading actions file:"
-                " {}. Using default Corefile".format(
-                    e.message
-                )
-            )
+            logger.error("An error occurred while reading actions file: "
+                         " {}. Using default Corefile".format(e.message))
+
             corefile = CoreDNSCorefile.from_dict(self._default_corefile)
 
         self._stored.corefile = corefile.to_dict()
@@ -120,14 +118,21 @@ class CorednsK8SCharm(CharmBase):
         # Get a reference the container attribute on the PebbleReadyEvent
         container = event.workload
 
+        self.unit.status = MaintenanceStatus("Parsing actions file")
         self.parse_actions_file()
 
         try:
+            logger.debug("Creating /Corefile")
+
             container.push("/Corefile", self.corefile.to_caddy())
         except PathError as e:
+            logger.fatal("Error: Failed to create /Corefile: {}".format(e.message))
+
             self.unit.status = BlockedStatus(
-                f"Failed to create /Corefile: Message: {e.message}"
+                f"Failed to create /Corefile"
             )
+
+        logger.debug("Adding pebble layer")
 
         pebble_layer = {
             "summary": "coredns layer",
@@ -143,26 +148,58 @@ class CorednsK8SCharm(CharmBase):
         }
         container.add_layer("coredns", pebble_layer, combine=True)
 
+        logger.debug("Auto starting services in container")
+
         container.autostart()
 
         self.unit.status = ActiveStatus("Pebble ready")
 
+    def _check_current(
+            self,
+            event: ActionEvent,
+            fmt: str,
+            **kwargs
+    ) -> CoreDNSCorefile:
+        """Check which corefile is required, log fmt and return corresponding
+        CoreDNSCorefile object
+
+        Args:
+            event: Event in which method is called
+            fmt: Format string, must contain '{current}' and must contain '**kwargs'
+                since fmt.format(current=current, **kwargs) is called.
+            **kwargs: Keyword arguments required by fmt
+
+        Returns:
+            Returns either corefile or new_corefile
+        """
+
+        if event.params["current"]:
+            current = "current"
+            corefile = self.corefile
+        else:
+            current = "new"
+            corefile = self.new_corefile
+
+        log_msg = fmt.format(current=current, **kwargs)
+        # logger.debug(log_msg)
+        event.log(log_msg)
+
+        return corefile
+
     def _on_print_corefile(self, event: ActionEvent):
-        current: bool = event.params["current"]
+        corefile = self._check_current(event, fmt="Printing {current} corefile")
 
-        event.log("Outputting {} Corefile".format("current" if current else "new"))
-
-        corefile = self.corefile if current else self.new_corefile
         print(corefile.to_caddy())
 
     def _on_print_zone(self, event: ActionEvent):
-        zone: str = event.params["zone"]
-        current: bool = event.params["current"]
+        zone = event.params["zone"]
 
-        corefile = self.corefile if current else self.new_corefile
-        event.log("Outputting zone from {} corefile".format(
-            "current" if current else "new"
-        ))
+        corefile = self._check_current(
+            event,
+            fmt="Printing zone '{zone}' from {current} corefile",
+            zone=zone
+        )
+
         if zone not in corefile.objects:
             event.fail(f"Could not found zone {zone}")
         else:
